@@ -20,13 +20,13 @@ done
 sleep 5s
 
 # Stop instances
-aws lightsail get-instances | jq -r '.instances[] | .name' | xargs -P 4 -I {} aws lightsail stop-instance --instance-name {}
+aws lightsail get-instances | jq -r '.instances[] | .name' | xargs --no-run-if-empty -P 4 -I {} aws lightsail stop-instance --instance-name {}
 
-# Wait for 30 seconds
-sleep 30s
+# Wait for 35 seconds
+sleep 35s
 
 # Start instances
-aws lightsail get-instances | jq -r '.instances[] | .name' | xargs -P 4 -I {} aws lightsail start-instance --instance-name {}
+aws lightsail get-instances | jq -r '.instances[] | .name' | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-instance --instance-name {}
 
 # Wait for 60 seconds
 sleep 60s

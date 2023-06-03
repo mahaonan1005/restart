@@ -27,6 +27,7 @@ done
 # 恢复原来的 IFS 值
 IFS=$OLDIFS
 
+# Wait for 5 seconds
 sleep 5s
 
 # Stop instances

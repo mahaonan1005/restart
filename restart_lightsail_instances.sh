@@ -25,38 +25,14 @@ instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
 # Stop instances
 echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail stop-instance --instance-name {}
 
-# Wait for instances to stop
-for name in $instance_names; do
-  while :
-  do
-    status=$(aws lightsail get-instance-state --instance-name "$name" --query 'state.name' --output text)
-    if [ "$status" == "stopped" ]; then
-      echo "Instance $name has stopped"
-      break
-    else
-      echo "Waiting for instance $name to stop..."
-      sleep 5
-    fi
-  done
-done
+# Wait for 45 seconds
+sleep 45s
 
 # Start instances
 echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-instance --instance-name {}
 
-# Wait for instances to start
-for name in $instance_names; do
-  while :
-  do
-    status=$(aws lightsail get-instance-state --instance-name "$name" --query 'state.name' --output text)
-    if [ "$status" == "running" ]; then
-      echo "Instance $name has started"
-      break
-    else
-      echo "Waiting for instance $name to start..."
-      sleep 5
-    fi
-  done
-done
+# Wait for 45 seconds
+sleep 45s
 
 # Display instance names and public IP addresses
 aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort

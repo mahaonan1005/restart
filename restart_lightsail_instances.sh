@@ -19,20 +19,44 @@ do
   aws lightsail release-static-ip --static-ip-name $ip_name
 done
 
-# Wait for 5 seconds
-sleep 5s
+# 获取所有实例名称
+instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
 
 # Stop instances
-aws lightsail get-instances | jq -r '.instances[] | .name' | xargs --no-run-if-empty -P 4 -I {} aws lightsail stop-instance --instance-name {}
+echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail stop-instance --instance-name {}
 
-# Wait for 45 seconds
-sleep 45s
+# Wait for instances to stop
+for name in $instance_names; do
+  while :
+  do
+    status=$(aws lightsail get-instance-state --instance-name "$name" --query 'state.name' --output text)
+    if [ "$status" == "stopped" ]; then
+      echo "Instance $name has stopped"
+      break
+    else
+      echo "Waiting for instance $name to stop..."
+      sleep 5
+    fi
+  done
+done
 
 # Start instances
-aws lightsail get-instances | jq -r '.instances[] | .name' | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-instance --instance-name {}
+echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-instance --instance-name {}
 
-# Wait for 45 seconds
-sleep 45s
+# Wait for instances to start
+for name in $instance_names; do
+  while :
+  do
+    status=$(aws lightsail get-instance-state --instance-name "$name" --query 'state.name' --output text)
+    if [ "$status" == "running" ]; then
+      echo "Instance $name has started"
+      break
+    else
+      echo "Waiting for instance $name to start..."
+      sleep 5
+    fi
+  done
+done
 
 # Display instance names and public IP addresses
 aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort

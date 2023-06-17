@@ -16,6 +16,9 @@ do
   aws lightsail release-static-ip --static-ip-name $ip_name
 done
 
+# Wait for 5 seconds
+sleep 5s
+
 # 获取所有实例名称
 instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
 

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# 记录脚本开始运行的时间
-start=$(date +%s)
-
 # 获取所有静态 IP 地址
 aws lightsail get-static-ips --query 'staticIps[*].[name]' --output text | while read -r ip_name
 do
@@ -28,18 +25,17 @@ echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail stop-i
 # Wait for 45 seconds
 sleep 45s
 
+
+
 # Start instances
 echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-instance --instance-name {}
 
 # Wait for 45 seconds
 sleep 45s
 
+# 清除缓存和数据
+unset instance_names
+
+
 # Display instance names and public IP addresses
 aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort
-
-# 记录脚本结束运行的时间
-end=$(date +%s)
-
-# 计算并输出脚本运行的时长
-duration=$((end - start))
-echo "The script ran for $duration seconds."

@@ -35,7 +35,7 @@ echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-
 sleep 45s
 
 # Display instance names and public IP addresses
-aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @csv' | sort
+aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort
 
 # 记录脚本结束运行的时间
 end=$(date +%s)

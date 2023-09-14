@@ -36,8 +36,8 @@ sleep 5s
 # Stop instances
 aws lightsail get-instances | jq -r '.instances[] | .name' | xargs -I {} aws lightsail stop-instance --instance-name {}
 
-# Wait for 45 seconds
-sleep 45s
+# Wait for 60 seconds
+sleep 60s
 
 # Start instances
 aws lightsail get-instances | jq -r '.instances[] | .name' | xargs -I {} aws lightsail start-instance --instance-name {}

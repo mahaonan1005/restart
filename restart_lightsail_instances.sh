@@ -25,8 +25,8 @@ instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
 # Stop instances
 echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail stop-instance --instance-name {}
 
-# Wait for 70 seconds
-sleep 70s
+# Wait for 50 seconds
+sleep 50s
 
 # Start instances
 echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-instance --instance-name {}

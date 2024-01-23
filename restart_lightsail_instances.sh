@@ -31,8 +31,8 @@ sleep 70s
 # Start instances
 echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} aws lightsail start-instance --instance-name {}
 
-# Wait for 45 seconds
-sleep 45s
+# Wait for 30 seconds
+sleep 30s
 
 # Display instance names and public IP addresses
 aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort

@@ -42,8 +42,8 @@ sleep 70s
 # Start instances
 aws lightsail get-instances | jq -r '.instances[] | .name' | xargs -I {} aws lightsail start-instance --instance-name {}
 
-# Wait for 45 seconds
-sleep 45s
+# Wait for 30 seconds
+sleep 30s
 aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort
 
 # 记录脚本结束运行的时间

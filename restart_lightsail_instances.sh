@@ -1,18 +1,10 @@
 #!/bin/bash
 
-# 记录脚本开始运行的时间
-start=$(date +%s)
+# Get the start timestamp
+start_time=$(date +%s)
 
 # 获取所有静态 IP 地址
-ips=$(aws lightsail get-static-ips --query 'staticIps[*].[name]' --output text)
-
-# 保存当前的 IFS 值，以便之后可以恢复
-OLDIFS=$IFS
-# 设置 IFS 为换行符
-IFS=$'\n'
-
-# 遍历每个 IP
-for ip_name in $ips
+aws lightsail get-static-ips --query 'staticIps[*].[name]' --output text | while read -r ip_name
 do
   # 首先解除实例关联
   instance=$(aws lightsail get-static-ip --static-ip-name $ip_name --query 'staticIp.attachedTo' --output text)
@@ -27,28 +19,51 @@ do
   aws lightsail release-static-ip --static-ip-name $ip_name
 done
 
-# 恢复原来的 IFS 值
-IFS=$OLDIFS
+# Wait for 5 seconds
+sleep 5s
+
+# 获取所有实例名称
+instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
+
+# Stop instances
+echo "$instance_names" | xargs --no-run-if-empty -P 4  -I {} aws lightsail stop-instance --instance-name {}
+
+
+# For each instance in the list, start it using xargs
+echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} bash -c '
+  instance="{}"
+  echo "Starting instance: $instance"
+  
+  # Check instance state
+  state=$(aws lightsail get-instance-state --instance-name $instance --query '"'state.name'"' --output text)
+  
+  # If instance is not stopped, wait for it to stop before starting it
+  while [ "$state" != "stopped" ]
+  do
+    echo "Waiting for instance: $instance to stop"
+    sleep 5
+    state=$(aws lightsail get-instance-state --instance-name $instance --query '"'state.name'"' --output text)
+  done
+  
+  # Start instance
+  aws lightsail start-instance --instance-name $instance
+'
+
 
 # Wait for 5 seconds
 sleep 5s
 
-# Stop instances
-aws lightsail get-instances | jq -r '.instances[] | .name' | xargs -I {} aws lightsail stop-instance --instance-name {}
+# 获取所有实例名称
+instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
 
-# Wait for 70 seconds
-sleep 70s
 
-# Start instances
-aws lightsail get-instances | jq -r '.instances[] | .name' | xargs -I {} aws lightsail start-instance --instance-name {}
-
-# Wait for 30 seconds
-sleep 30s
+# Display instance names and public IP addresses
 aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort
 
-# 记录脚本结束运行的时间
-end=$(date +%s)
+# Get the end timestamp
+end_time=$(date +%s)
 
-# 计算并输出脚本运行的时长
-duration=$((end - start))
-echo "The script ran for $duration seconds."
+# Calculate the time elapsed
+elapsed_time=$(($end_time-$start_time))
+
+echo "Total execution time: $elapsed_time seconds."

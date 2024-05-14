@@ -41,7 +41,7 @@ echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} bash -c '
   while [ "$state" != "stopped" ]
   do
     echo "Waiting for instance: $instance to stop"
-    sleep 5
+    sleep 1
     state=$(aws lightsail get-instance-state --instance-name $instance --query '"'state.name'"' --output text)
   done
   

@@ -26,11 +26,11 @@ sleep 5s
 instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
 
 # Stop instances
-echo "$instance_names" | xargs --no-run-if-empty -P 4  -I {} aws lightsail stop-instance --instance-name {}
+echo "$instance_names" | xargs --no-run-if-empty -P 6  -I {} aws lightsail stop-instance --instance-name {}
 
 
 # For each instance in the list, start it using xargs
-echo "$instance_names" | xargs --no-run-if-empty -P 4 -I {} bash -c '
+echo "$instance_names" | xargs --no-run-if-empty -P 6 -I {} bash -c '
   instance="{}"
   echo "Starting instance: $instance"
   

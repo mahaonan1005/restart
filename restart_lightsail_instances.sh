@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Get the start timestamp
+start_time=$(date +%s)
+
 # 获取所有静态 IP 地址
 aws lightsail get-static-ips --query 'staticIps[*].[name]' --output text | while read -r ip_name
 do
@@ -23,16 +26,24 @@ sleep 5s
 instance_names=$(aws lightsail get-instances | jq -r '.instances[] | .name')
 
 # Stop instances
-echo "$instance_names" | xargs --no-run-if-empty -P 3  -I {} aws lightsail stop-instance --instance-name {}
+echo "$instance_names" | xargs --no-run-if-empty -P 4  -I {} aws lightsail stop-instance --instance-name {}
 
-# Wait for 50 seconds
-sleep 50s
+# Wait for 30 seconds
+sleep 30s
 
 # Start instances
-echo "$instance_names" | xargs --no-run-if-empty -P 3  -I {} aws lightsail start-instance --instance-name {}
+echo "$instance_names" | xargs --no-run-if-empty -P 4  -I {} aws lightsail start-instance --instance-name {}
 
 # Wait for 20 seconds
 sleep 20s
 
 # Display instance names and public IP addresses
 aws lightsail get-instances --query "instances[*].[name, publicIpAddress]" --output json | jq -r '.[] | @tsv' | sort
+
+# Get the end timestamp
+end_time=$(date +%s)
+
+# Calculate the time elapsed
+elapsed_time=$(($end_time-$start_time))
+
+echo "Total execution time: $elapsed_time seconds."
